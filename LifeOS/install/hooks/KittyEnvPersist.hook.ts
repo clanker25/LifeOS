@@ -1,0 +1,98 @@
+#!/usr/bin/env bun
+/**
+ * @version 1.4.17
+ * KittyEnvPersist.hook.ts - Kitty terminal env persistence + tab reset (SessionStart)
+ *
+ * PURPOSE:
+ * Persists Kitty terminal environment variables (KITTY_LISTEN_ON, KITTY_WINDOW_ID)
+ * to disk so hooks running later (without terminal context) can control tabs.
+ * Also resets tab title to clean state at session start.
+ *
+ * TRIGGER: SessionStart
+ */
+
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
+import { join } from 'path';
+import { getLifeosDir } from './lib/paths';
+import { setTabState, readTabState, persistKittySession } from './lib/tab-setter';
+import { getDAName } from './lib/identity';
+import { isSubagentContext } from './lib/subagent';
+import { registerSession, harnessFromEnv, findHarnessPid } from '../LIFEOS/TOOLS/LiveSessions';
+
+const lifeosDir = getLifeosDir();
+
+// Read session_id + source from stdin (SessionStart hook input)
+// source ∈ {"startup", "resume", "compact", "clear", "fork"}; absent on older CC versions.
+let sessionId = '';
+let source = '';
+let parsed: unknown = null;
+try {
+  const raw = readFileSync(0, 'utf-8');
+  if (raw) {
+    const json = JSON.parse(raw);
+    parsed = json;
+    sessionId = String(json.session_id || '');
+    source = String(json.source || '');
+  }
+} catch { /* best-effort */ }
+
+// Skip for subagents — a fork announces itself as `source: "fork"` on stdin and
+// nowhere in the env, so this reads the payload above (see lib/subagent.ts).
+// public PR #1958, @theNetworkChuck
+if (isSubagentContext(parsed)) process.exit(0);
+
+// Persist Kitty environment for hooks that run later without terminal context
+const kittyListenOn = process.env.KITTY_LISTEN_ON;
+const kittyWindowId = process.env.KITTY_WINDOW_ID;
+if (kittyListenOn && kittyWindowId) {
+  const stateDir = join(lifeosDir, 'MEMORY', 'STATE');
+  if (!existsSync(stateDir)) mkdirSync(stateDir, { recursive: true });
+  writeFileSync(
+    join(stateDir, 'kitty-env.json'),
+    JSON.stringify({ KITTY_LISTEN_ON: kittyListenOn, KITTY_WINDOW_ID: kittyWindowId }, null, 2)
+  );
+  // Per-session file — required by out-of-process consumers (Pulse voice daemon) that
+  // can't inherit KITTY_* env vars but have session_id. See hooks/lib/tab-setter.ts.
+  if (sessionId) persistKittySession(sessionId, kittyListenOn, kittyWindowId);
+}
+
+// Register this session in the harness-agnostic live-sessions registry so
+// `bun LIFEOS/TOOLS/Sessions.ts restore` (/rs) can bring it back after the
+// terminal dies. Harness comes from LIFEOS_HARNESS (the bridges set it; Claude
+// does not), cwd from the hook input, pid from walking up to the harness process.
+if (sessionId && source !== 'compact') {
+  try {
+    const cwd = String((parsed as { cwd?: string } | null)?.cwd || process.cwd());
+    const harness = harnessFromEnv();
+    registerSession({
+      sessionId, harness, cwd,
+      pid: findHarnessPid(harness, process.ppid),
+      startedAt: new Date().toISOString(),
+      kitty: kittyListenOn && kittyWindowId ? { listenOn: kittyListenOn, windowId: kittyWindowId } : null,
+    });
+  } catch (err) { console.error(`⚠️ live-sessions register failed: ${err}`); }
+}
+
+// Reset tab title to clean state — prevents stale titles bleeding through when a
+// kitty window is reused for a brand-new Claude session. Only `source: "compact"`
+// is the same running session continuing; every other source (startup, resume,
+// clear, or missing) is a distinct session and MUST drop the prior title so
+// PromptProcessing can rebuild it from THIS session's own name.
+try {
+  if (source === 'compact') {
+    const current = readTabState(sessionId);
+    if (current && (current.state === 'working' || current.state === 'thinking')) {
+      console.error(`🔄 Tab in ${current.state} state — preserving title through compaction`);
+    } else {
+      setTabState({ title: `${getDAName()} ready…`, state: 'idle', sessionId });
+      console.error('🔄 Tab title reset to clean state (post-compact, no live work)');
+    }
+  } else {
+    setTabState({ title: `${getDAName()} ready…`, state: 'idle', sessionId });
+    console.error(`🔄 Tab title reset for new session (source=${source || 'unspecified'})`);
+  }
+} catch (err) {
+  console.error(`⚠️ Failed to reset tab title: ${err}`);
+}
+
+process.exit(0);

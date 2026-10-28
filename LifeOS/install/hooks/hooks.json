@@ -1,0 +1,371 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Agent",
+        "hooks": [
+          {
+            "command": "$HOME/.claude/hooks/AgentInvocation.hook.ts",
+            "type": "command"
+          }
+        ]
+      },
+      {
+        "matcher": "AskUserQuestion",
+        "hooks": [
+          {
+            "command": "$HOME/.claude/hooks/TabState.hook.ts",
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Agent",
+        "hooks": [
+          {
+            "command": "$HOME/.claude/hooks/AgentInvocation.hook.ts",
+            "type": "command"
+          }
+        ]
+      },
+      {
+        "matcher": "AskUserQuestion",
+        "hooks": [
+          {
+            "command": "$HOME/.claude/hooks/TabState.hook.ts",
+            "timeout": 5,
+            "type": "command"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "command": "$HOME/.claude/hooks/PostToolObserver.hook.ts",
+            "timeout": 35,
+            "type": "command"
+          },
+          {
+            "async": true,
+            "command": "$HOME/.claude/hooks/EventLogger.hook.ts",
+            "timeout": 5,
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/WorkCompletionLearning.hook.ts"
+          },
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/SessionCleanup.hook.ts"
+          },
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/UpdateCounts.hook.ts"
+          },
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/DocIntegrity.hook.ts"
+          },
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/IntegrityCheck.hook.ts"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/SessionTitle.hook.ts",
+            "timeout": 6
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "async": true,
+            "command": "$HOME/.claude/hooks/PromptProcessing.hook.ts",
+            "timeout": 20,
+            "type": "command"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "async": true,
+            "command": "$HOME/.claude/hooks/SatisfactionCapture.hook.ts",
+            "timeout": 20,
+            "type": "command"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "command": "$HOME/.claude/hooks/VersionDrift.hook.ts",
+            "timeout": 10,
+            "type": "command"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "command": "$HOME/.claude/hooks/DriftReminder.hook.ts",
+            "timeout": 10,
+            "type": "command"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "command": "$HOME/.claude/hooks/MemoryTurnStart.hook.ts",
+            "timeout": 20,
+            "type": "command"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "command": "$HOME/.claude/hooks/AlgorithmNudge.hook.ts",
+            "timeout": 10,
+            "type": "command"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "command": "$HOME/.claude/hooks/TimeContext.hook.ts",
+            "timeout": 10,
+            "type": "command"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "command": "$HOME/.claude/hooks/VoiceMode.hook.ts",
+            "timeout": 5,
+            "type": "command"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "command": "$HOME/.claude/hooks/ModelDriftGuard.hook.ts",
+            "timeout": 10,
+            "type": "command"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/TurnRecord.hook.ts",
+            "timeout": 15,
+            "async": true
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/EventLogger.hook.ts"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/AlgorithmNudge.hook.ts",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "ConfigChange": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/EventLogger.hook.ts"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "command": "bun $HOME/.claude/hooks/HookHealer.hook.ts",
+            "timeout": 20,
+            "type": "command"
+          },
+          {
+            "command": "$HOME/.claude/hooks/KittyEnvPersist.hook.ts",
+            "type": "command"
+          },
+          {
+            "command": "$HOME/.claude/hooks/LoadContext.hook.ts",
+            "type": "command"
+          },
+          {
+            "async": true,
+            "command": "bun $HOME/.claude/LIFEOS/TOOLS/FreshnessCache.ts --quiet",
+            "timeout": 5,
+            "type": "command"
+          },
+          {
+            "async": true,
+            "command": "bun $HOME/.claude/LIFEOS/TOOLS/SettingsBackport.ts; bun $HOME/.claude/LIFEOS/TOOLS/MergeSettings.ts --system $HOME/.claude/settings.system.json --user $HOME/.claude/LIFEOS/USER/CONFIG/settings.user.json --output $HOME/.claude/settings.json",
+            "timeout": 15,
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "command": "$HOME/.claude/hooks/LastResponseCache.hook.ts",
+            "type": "command"
+          },
+          {
+            "command": "$HOME/.claude/hooks/TabState.hook.ts",
+            "type": "command"
+          },
+          {
+            "async": true,
+            "command": "$HOME/.claude/hooks/VoiceCompletion.hook.ts",
+            "type": "command"
+          },
+          {
+            "command": "$HOME/.claude/hooks/ISARenderOnStop.hook.ts",
+            "type": "command"
+          },
+          {
+            "command": "$HOME/.claude/hooks/StopGates.hook.ts",
+            "type": "command"
+          },
+          {
+            "command": "$HOME/.claude/hooks/MemoryReviewFire.hook.ts",
+            "type": "command"
+          },
+          {
+            "command": "$HOME/.claude/hooks/TurnOutcome.hook.ts",
+            "type": "command"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "async": false,
+            "command": "$HOME/.claude/hooks/MemoryHealthGate.hook.ts",
+            "timeout": 16,
+            "type": "command"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "async": true,
+            "command": "$HOME/.claude/hooks/VigilTaskSummary.hook.ts",
+            "timeout": 15,
+            "type": "command"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/MemoryIndexRefresh.hook.ts",
+            "timeout": 60,
+            "async": true
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/MicroIntegrity.hook.ts",
+            "timeout": 180,
+            "async": true
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/BlockerText.hook.ts",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "StopFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/EventLogger.hook.ts"
+          },
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/TabState.hook.ts"
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "command": "$HOME/.claude/hooks/TabState.hook.ts",
+            "timeout": 5,
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/BlockerText.hook.ts",
+            "async": true
+          }
+        ]
+      }
+    ]
+  }
+}

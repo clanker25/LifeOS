@@ -1,0 +1,428 @@
+/* ── LifeOS Official Font System (Butterick) ──
+ * Body sans:     concourse-t3 (replaces Share Tech Mono)
+ * Display:       advocate-c14 (replaces Orbitron)
+ * Narrow heads:  advocate-n34
+ * Tab display:   advocate-c41
+ * Caps labels:   heliotrope-caps
+ * Serif text:    heliotrope-t3
+ * Serif accent:  valkyrie-text
+ * Monospace:     triplicate-a-code (replaces JetBrains Mono)
+ * Serif body:    equity-text
+ * Caps sans:     concourse-c3
+ */
+
+@font-face { font-family: 'concourse-t3'; src: url('/fonts/concourse_t3_regular-webfont.woff') format('woff'); font-display: swap; }
+@font-face { font-family: 'concourse-t3'; src: url('/fonts/concourse_t3_bold.otf') format('opentype'); font-weight: 700; font-display: swap; }
+@font-face { font-family: 'concourse-c3'; src: url('/fonts/concourse_c3_regular.woff') format('woff'); font-display: swap; }
+@font-face { font-family: 'advocate-c14'; src: url('/fonts/advocate_14_cond_reg.woff2') format('woff2'); font-display: swap; }
+@font-face { font-family: 'advocate-n34'; src: url('/fonts/advocate_34_narr_reg.woff2') format('woff2'); font-display: swap; }
+@font-face { font-family: 'advocate-c41'; src: url('/fonts/advocate_c41_tab_regular-webfont.woff') format('woff'); font-display: swap; }
+@font-face { font-family: 'heliotrope-caps'; src: url('/fonts/heliotrope_3_caps_regular.woff2') format('woff2'); font-display: swap; }
+@font-face { font-family: 'heliotrope-t3'; src: url('/fonts/heliotrope_3_regular.woff2') format('woff2'); font-display: swap; }
+@font-face { font-family: 'valkyrie-text'; src: url('/fonts/valkyrie_a_regular.woff2') format('woff2'); font-weight: normal; font-display: swap; size-adjust: 105%; }
+@font-face { font-family: 'valkyrie-text'; src: url('/fonts/valkyrie_a_bold.woff2') format('woff2'); font-weight: bold; font-display: swap; }
+@font-face { font-family: 'valkyrie-text'; src: url('/fonts/valkyrie_a_italic.woff2') format('woff2'); font-weight: normal; font-style: italic; font-display: swap; }
+@font-face { font-family: 'triplicate-a-code'; src: url('/fonts/triplicate_a_code_regular.woff2') format('woff2'); font-weight: normal; font-display: swap; }
+@font-face { font-family: 'triplicate-a-code'; src: url('/fonts/triplicate_a_code_bold.woff2') format('woff2'); font-weight: bold; font-display: swap; }
+@font-face { font-family: 'equity-text'; src: url('/fonts/equity_text_b_regular-webfont.woff') format('woff'); font-display: swap; size-adjust: 102%; }
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* ══════════════════════════════════════════════════════════════
+     PULSE DESIGN TOKENS — the one palette (telos-v7 navy canon).
+     Every page and component consumes these; no page defines its own.
+     Raw tokens are hex; the shadcn/Tailwind vars below them are the
+     same colors as HSL triplets so bg-card/border-border/etc. resolve
+     to this palette everywhere. Chrome primitives live in
+     src/components/ui/chrome.tsx (PageShell/PageHeader/Panel/…).
+     ══════════════════════════════════════════════════════════════ */
+  :root, .dark {
+    --sans: 'concourse-t3', sans-serif;
+    --mono: 'triplicate-a-code', monospace;
+    --font-mono: 'triplicate-a-code', monospace;
+    /* Ground + surfaces — GLASS ERA (2026-08-17 redo).
+       Surfaces are translucent LIGHT, not paint: raw bg-surface-N consumers
+       get translucency over the aurora; the .glass classes below add the
+       full material (blur, edge light, depth shadow). Var names are the
+       stable API — values changed, consumers untouched. */
+    --ground: #050b17;        /* super dark blue night behind the bokeh scene */
+    --surface-1: #0a1528;  /* toolbars, table headers */
+    --surface-2: #0e1d33;   /* the card (smoke glass) */
+    --surface-3: #162c48;   /* hover / elevated */
+    /* Lines */
+    --line-1: #1b304d;      /* subtle hairline */
+    --line-2: #294567;      /* card border */
+    --line-3: #4b91d2;      /* hover border */
+    /* The floating sheet — the one big glass window the app lives in */
+    --sheet-bg: rgba(7,17,33,0.96);
+    --sheet-blur: 12px;
+    /* Ink */
+    --ink-1: #eff7ff;         /* primary text */
+    --ink-2: #b0c4dd;         /* muted text */
+    --ink-3: #829dbb;         /* faint labels */
+    /* Accent */
+    --accent-blue: #258bff;
+    --accent-soft: #80ccff;
+    /* Glass material knobs (single source for .glass + chrome kit) */
+    --glass-blur: 8px;
+    --glass-edge: rgba(113,185,255,0.12);
+    --glass-edge-hover: rgba(113,185,255,0.25);
+    --glass-shadow: 0 8px 24px rgba(0,5,15,0.18);
+    /* The warm note — the human counterweight in an otherwise cool field */
+    --ember: #E0A458;
+    /* Status */
+    --ok: #4ADE80;
+    --warn: #FBBF24;
+    --err: #F87171;
+    /* Life dimensions (canonical; telos theme variants may override locally) */
+    --health: #34D399;
+    --money: #E0A458;
+    --freedom: #7DD3FC;
+    --creative: #F87B7B;
+    --relationships: #B794F4;
+    --rhythms: #2DD4BF;
+    /* Legacy alias kept while stragglers migrate (was the neon set) */
+    --neon-blue: #3B82F6;
+
+    /* shadcn vars — harmonized HSL triplets (opaque fallbacks for direct
+       bg-card/bg-popover stragglers; the Card component itself is .glass) */
+    --background: 220.0 64.3% 5.5%;         /* --ground */
+    --foreground: 210.0 100.0% 96.9%;       /* --ink-1 */
+    --card: 215.7 56.9% 12.7%;
+    --card-foreground: 210.0 100.0% 96.9%;
+    --popover: 213.6 53.2% 18.4%;
+    --popover-foreground: 210.0 100.0% 96.9%;
+    --primary: 211.9 100.0% 57.3%;           /* #3B82F6 */
+    --primary-foreground: 210.0 100.0% 96.9%;
+    --secondary: 218.0 60.0% 9.8%;
+    --secondary-foreground: 210.0 100.0% 96.9%;
+    --muted: 218.0 60.0% 9.8%;
+    --muted-foreground: 213.3 39.8% 77.8%;  /* --ink-2 */
+    --accent: 213.6 53.2% 18.4%;
+    --accent-foreground: 210.0 100.0% 96.9%;
+    --destructive: 0 86% 71%;         /* #F87171 */
+    --destructive-foreground: 228 58% 4%;
+    --border: 212.9 43.1% 28.2%;
+    --input: 212.9 43.1% 28.2%;
+    --ring: 211.9 100.0% 57.3%;
+    --radius: 1rem;
+    --chart-1: 217 91% 60%;
+    --chart-2: 160 64% 52%;
+    --chart-3: 35 69% 61%;
+    --chart-4: 262 78% 77%;
+    --chart-5: 0 91% 73%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html, body {
+    overflow-x: hidden; /* Prevent horizontal scroll on mobile */
+  }
+  /* The ground lives on html ONLY. body stays transparent so the aurora
+     pseudo-layers (negative z-index) paint between ground and content —
+     an opaque body background would sit above them in paint order. */
+  html {
+    background: var(--ground);
+  }
+  body {
+    @apply text-foreground;
+    background: transparent;
+    font-family: 'concourse-t3', 'Concourse T3', system-ui, sans-serif;
+    font-size: 17px;
+    line-height: 1.55;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    text-shadow: none;
+  }
+
+  /* HERO: blue drafting grid behind the instrument panels. */
+  body::before {
+    content: ""; position: fixed; inset: 0; z-index: -2; pointer-events: none;
+    background: radial-gradient(ellipse at 15% 0%, rgba(20,101,207,.16), transparent 55%),
+      linear-gradient(rgba(92,167,241,.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(92,167,241,.035) 1px, transparent 1px);
+    background-size: auto, 48px 48px, 48px 48px;
+  }
+  body::after { content: none; }
+  html::before { content: none; }
+
+  h1 {
+    font-family: 'advocate-n34', 'concourse-t3', sans-serif;
+    font-size: 2.65rem;
+    font-weight: 400;
+    letter-spacing: -0.015em;
+    color: var(--ink-1);
+    text-shadow: none;
+  }
+  h2 {
+    font-family: 'advocate-n34', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    text-transform: lowercase;
+  }
+  h3 {
+    font-family: 'heliotrope-caps', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    text-transform: lowercase;
+  }
+  h4, h5, h6 {
+    font-family: 'advocate-c14', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 200;
+    letter-spacing: 0.05em;
+    text-transform: lowercase;
+  }
+}
+
+/* Custom scrollbar - thin & dark */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.2);
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.4);
+}
+
+/* Kanban — make horizontal scroll obvious so users see there's more */
+.kanban-scroll::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.kanban-scroll::-webkit-scrollbar-track {
+  background: hsl(var(--muted-foreground) / 0.06);
+  border-radius: 6px;
+}
+.kanban-scroll::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.5);
+  border-radius: 6px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+.kanban-scroll::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.8);
+  background-clip: content-box;
+}
+.kanban-scroll {
+  scrollbar-width: auto;
+  scrollbar-color: hsl(var(--muted-foreground) / 0.5) transparent;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   GLASS MATERIAL — the one card treatment. Three tiers:
+   .glass         → the standard panel (chrome Panel, shadcn Card)
+   .glass-raised  → elevated surfaces (popovers, palette, modals)
+   .glass-sunken  → recessed wells (table heads, toolbars, inputs)
+   Consumed by chrome.tsx; pages never hand-roll their own material.
+   ══════════════════════════════════════════════════════════════ */
+.glass,
+.glass-raised,
+.glass-sunken {
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.02) 40%, transparent 72%),
+    var(--surface-2);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.5);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.5);
+  border: 1px solid var(--line-2);
+  box-shadow: inset 0 1px 0 var(--glass-edge), var(--glass-shadow);
+}
+
+/* The floating sheet — the ONE big frosted window the whole page lives in
+   (exemplar register: a glass object floating in a luminous room). */
+.glass-sheet {
+  background: var(--sheet-bg);
+  border: 1px solid var(--line-1);
+  box-shadow: var(--glass-shadow);
+}
+.pulse-page { counter-reset: pulse-section; }
+.pulse-section-header::before {
+  counter-increment: pulse-section;
+  content: counter(pulse-section, decimal-leading-zero);
+  font-family: 'triplicate-a-code', monospace;
+  font-size: 11px; font-variant-numeric: tabular-nums;
+  color: var(--accent-soft); border: 1px solid var(--line-2);
+  padding: 3px 6px; margin-right: 4px; border-radius: 3px;
+}
+.pulse-stat-value {
+  font-family: 'concourse-t3', sans-serif;
+  font-variant-numeric: tabular-nums; font-feature-settings: "tnum";
+  letter-spacing: -.04em; font-size: 36px; font-weight: 700;
+}
+.pulse-page-header { border-bottom: 1px solid var(--line-1); padding-bottom: 20px; }
+
+/* Silver KPI glass — the bright gradient strip tier from the exemplar. */
+.glass-silver {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.30), rgba(255, 255, 255, 0.10) 55%, rgba(255, 255, 255, 0.06));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.6);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.6);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), var(--glass-shadow);
+}
+.glass-raised {
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.012) 40%, transparent 75%),
+    var(--surface-3);
+  box-shadow: inset 0 1px 0 var(--glass-edge-hover),
+    0 24px 64px rgba(2, 5, 16, 0.55), 0 64px 160px -48px rgba(2, 5, 16, 0.7);
+}
+.glass-sunken {
+  background: var(--surface-1);
+  box-shadow: inset 0 1px 2px rgba(2, 5, 16, 0.35);
+}
+
+/* Hover physics for interactive glass: lift + edge-light brighten. */
+.glass-hover {
+  transition: background-color 200ms ease-out, border-color 200ms ease-out,
+    box-shadow 250ms ease-out, transform 250ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.glass-hover:hover {
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.015) 40%, transparent 75%),
+    var(--surface-3);
+  border-color: var(--line-3);
+  box-shadow: inset 0 1px 0 var(--glass-edge-hover), var(--glass-shadow);
+  transform: translateY(-1px);
+}
+
+/* Page-enter: one orchestrated rise per navigation, applied by PageShell. */
+.page-enter {
+  animation: page-rise 480ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes page-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@media(prefers-reduced-motion:reduce) { .page-enter { animation: none; } }
+
+/* Soft technical glow for mono data values (StatTile and friends). */
+.data-glow {
+  text-shadow: none;
+}
+
+/* Mono text */
+.mono {
+  font-family: 'triplicate-a-code', monospace;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum", "zero";
+}
+
+/* Small uppercase metric label (legacy consumer; prefer PanelHeader/StatTile) */
+.metric-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-3);
+}
+
+/* Progress bar */
+.progress-bar {
+  height: 3px;
+  background: var(--line-1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s ease-out;
+}
+
+/* Skeleton loading states */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--surface-2) 0%,
+    var(--surface-3) 50%,
+    var(--surface-2) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton-line {
+  height: 12px;
+  width: 100%;
+  margin: 0.5rem 0;
+}
+
+.skeleton-line.short { width: 60%; }
+.skeleton-line.medium { width: 80%; }
+
+.skeleton-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.skeleton-chart {
+  height: 200px;
+  width: 100%;
+}
+
+/* Motion ships for everyone — no reduced-motion gate (standing LifeOS rule).
+   All animation is CSS time-based, therefore frame-rate independent. */
+
+/* ── Observer Mode ─────────────────────────────────────────────────────────
+   The pre-paint script in layout.tsx + ObserverModeContext put
+   `observer-active` and `data-observer-scope` (full | fine | open) on <html>.
+   Route classification lives in src/lib/observer.ts — the one map. */
+
+[data-sensitive] {
+  transition: filter 0.3s ease;
+}
+
+/* Element-level blur on mixed ("fine") pages. 7px makes body text unreadable;
+   4px did not. */
+html.observer-active [data-sensitive] {
+  filter: blur(7px) saturate(0.3);
+  user-select: none;
+  pointer-events: none;
+  position: relative;
+}
+
+/* Hero-scale text needs more. */
+html.observer-active [data-sensitive="strong"] {
+  filter: blur(14px) saturate(0.3);
+}
+
+html.observer-active [data-sensitive]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(30, 41, 59, 0.15);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* Wholly-personal pages: blur the entire content pane. Header/nav stay usable. */
+html.observer-active[data-observer-scope="full"] main {
+  filter: blur(16px) saturate(0.25);
+  user-select: none;
+  pointer-events: none;
+}
